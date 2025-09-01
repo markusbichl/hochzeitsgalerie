@@ -1,0 +1,47 @@
+# --- Python / Flask
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+*.egg-info/
+.env
+.env.*
+instance/
+*.log
+
+# Runtime/state files (don’t version photos list)
+photos.json
+
+# Uploaded / generated assets (served publicly)
+static/uploads/
+static/tw.css.map
+
+# Private originals (DO NOT COMMIT)
+storage/originals/
+
+# If you keep thumbnails or temp processing files:
+storage/tmp/
+static/thumbs/
+
+# Virtualenvs
+.venv/
+venv/
+env/
+
+# Node / Tailwind
+node_modules/
+.pnp.*        # yarn pnp
+.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# Build outputs (keep the source like assets.css, not the compiled bundles)
+static/tw.css
+bin/tailwindcss
+
+# Editor/OS
+.vscode/
+.idea/
+*.swp

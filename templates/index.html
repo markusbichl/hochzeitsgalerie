@@ -1,0 +1,794 @@
+<!DOCTYPE html>
+<html lang="de" class="!bg-white !text-gray-800">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hochzeitsfoto-Galerie</title>
+  <!-- Favicon -->
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="shortcut icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/static/favicon-16.png">
+  <link rel="stylesheet" href="/static/tw.css?v=2">
+  <script defer src="/static/js/flowbite.min.js"></script>
+  <style>
+    :root {
+      --color-accent: #d9b4c7;
+      --color-accent-dark: #b98ea7;
+      --color-bg-light: #faf6f8;
+      --color-text: #4a4a4a;
+      --color-ring: #e3c9d4;
+    }
+
+    body {
+      background-color: var(--color-bg-light);
+      color: var(--color-text);
+    }
+
+    .text-accent {
+      color: var(--color-accent-dark);
+    }
+
+    .bg-accent {
+      background-color: var(--color-accent);
+    }
+
+    .bg-accent-dark {
+      background-color: var(--color-accent-dark);
+    }
+
+    .btn-primary {
+      background-color: var(--color-accent);
+      color: #fff;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--color-accent-dark);
+    }
+
+    /* Masonry */
+    .masonry {
+      column-gap: 1rem;
+    }
+
+    .masonry-item {
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 1rem;
+      break-inside: avoid;
+      position: relative;
+    }
+
+    @media (min-width:640px) {
+      .masonry {
+        column-count: 2;
+      }
+    }
+
+    @media (min-width:1024px) {
+      .masonry {
+        column-count: 3;
+      }
+    }
+
+    @media (min-width:1280px) {
+      .masonry {
+        column-count: 4;
+      }
+    }
+
+    .drag-over {
+      outline: 4px dashed rgba(217, 180, 199, .6);
+      outline-offset: 6px;
+      box-shadow: 0 8px 30px rgba(217, 180, 199, .12);
+    }
+
+    .caption-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0, 0, 0, .6);
+      color: #fff;
+      font-size: .75rem;
+      padding: .25rem .5rem;
+      border-bottom-left-radius: .5rem;
+      border-bottom-right-radius: .5rem;
+    }
+
+    /* Lightbox layout */
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      z-index: 50;
+      display: none;
+      background: rgba(0, 0, 0, .8)
+    }
+
+    .lightbox.show {
+      display: flex;
+      align-items: center;
+      justify-content: center
+    }
+
+    .lightbox-content {
+      position: relative;
+      max-width: min(96vw, 1400px);
+      max-height: 90vh;
+      width: 96vw;
+      display: flex;
+      flex-direction: column
+    }
+
+    /* The frame ensures buttons sit over the image only */
+    .lightbox-frame {
+      position: relative;
+      display: inline-block;
+      align-self: center;
+      max-height: 80vh
+    }
+
+    .lightbox-img {
+      display: block;
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      border-radius: .5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .35)
+    }
+
+    .lightbox-caption {
+      margin-top: .5rem;
+      color: #fff;
+      background: rgba(0, 0, 0, .6);
+      padding: .5rem .75rem;
+      border-radius: .5rem
+    }
+
+    /* Button styles & positions (inside the image frame) */
+    .lb-btn {
+      position: absolute;
+      background: rgba(0, 0, 0, .6);
+      color: #fff;
+      border-radius: .5rem;
+      padding: .45rem;
+      line-height: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background .2s ease
+    }
+
+    .lb-btn:hover {
+      background: rgba(0, 0, 0, .8)
+    }
+
+    .lb-icon {
+      width: 22px;
+      height: 22px
+    }
+
+    .lb-close {
+      top: .5rem;
+      right: .5rem
+    }
+
+    .lb-download {
+      bottom: .5rem;
+      right: .5rem
+    }
+
+    /* Prevent clicks on page while overlay is shown */
+    body.uploading {
+      overflow: hidden;
+    }
+
+    /* --- Toggle fallback: ensure the knob slides even if Tailwind prunes variants --- */
+
+    /* Smooth knob animation */
+    #missionToggle+div::after {
+      transition: transform 0.3s ease;
+    }
+
+    /* Move the knob ~translate-x-5 (≈ 20px) when checked */
+    #missionToggle:checked+div::after {
+      transform: translateX(20px);
+    }
+
+    /* Also tint the track like peer-checked:bg-accent */
+    #missionToggle:checked+div {
+      background-color: var(--color-accent);
+    }
+
+    /* Centered, padded content wrapper */
+    .page {
+      max-width: 1280px;
+      /* ~max-w-screen-xl */
+      margin-inline: auto;
+      /* center */
+      padding-inline: 1rem;
+      /* px-4 */
+      padding-block: 2rem;
+      /* py-8 */
+    }
+
+    @media (min-width:640px) {
+
+      /* sm */
+      .page {
+        padding-inline: 1.5rem;
+        padding-block: 3rem;
+      }
+
+      /* sm:px-6 sm:py-12 */
+    }
+
+    @media (min-width:1024px) {
+
+      /* lg */
+      .page {
+        padding-inline: 2rem;
+      }
+
+      /* lg:px-8 */
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body {
+        background-color: var(--color-bg-light) !important;
+        color: var(--color-text) !important;
+      }
+    }
+
+    /* --- Toasts (bottom center) --- */
+    #toasts {
+      position: fixed;
+      left: 50%;
+      bottom: 16px;
+      transform: translateX(-50%);
+      z-index: 60;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      /* don't block clicks behind */
+    }
+
+    .toast {
+      pointer-events: auto;
+      background: rgba(0, 0, 0, .85);
+      color: #fff;
+      padding: .65rem .9rem;
+      border-radius: .5rem;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+      max-width: min(92vw, 520px);
+      font-size: .9rem;
+      opacity: 0;
+      transform: translateY(10px);
+      transition: opacity .2s ease, transform .2s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .toast.error {
+      background: #b91c1c;
+    }
+
+    /* Tailwind-ish red-700 */
+    .toast.warn {
+      background: #a16207;
+    }
+
+    /* amber-700           */
+    .toast.ok {
+      background: #166534;
+    }
+
+    /* green-800           */
+  </style>
+</head>
+
+<body class="min-h-screen">
+  <main class="page">
+    <header class="text-center mb-8">
+      <h1 class="text-3xl sm:text-4xl font-extrabold text-accent">Willkommen zu unseren Hochzeits-Erinnerungen</h1>
+      <p class="mt-3 max-w-xl mx-auto text-sm sm:text-base">
+        Liebe Familie und Freunde - danke, dass ihr diesen besonderen Tag mit uns feiert. Teilt hier eure schönsten
+        Momente und stöbert durch die gesammelten Fotos.
+      </p>
+    </header>
+
+    <section id="missionToggleSection" class="mb-4 hidden">
+      <div
+        class="p-4 bg-[rgba(217,180,199,0.1)] border border-[rgba(217,180,199,0.4)] rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div class="flex-1">
+          <p class="font-semibold">Mission: <span id="missionDescription"></span></p>
+          <p class="text-xs sm:text-sm">Schalte aus, wenn du kein Missionsfoto hochlädst. Wir freuen uns über alle
+            Bilder die du heute gemacht hast!</p>
+        </div>
+        <label class="relative inline-flex items-center cursor-pointer select-none">
+          <input type="checkbox" id="missionToggle" class="sr-only peer">
+          <div class="relative w-11 h-6 rounded-full bg-gray-200 transition-colors duration-300
+              peer-checked:bg-accent peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[var(--color-ring)]
+              after:content-[''] after:absolute after:top-[2px] after:left-[2px]
+              after:w-5 after:h-5 after:rounded-full after:transition-all after:duration-300
+              after:bg-white peer-checked:after:bg-[var(--color-accent-dark)]
+              peer-checked:after:translate-x-5">
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <section class="mb-8">
+      <div id="uploadDrop" tabindex="0"
+        class="relative flex flex-col sm:flex-row items-center justify-between gap-4 p-6 rounded-xl bg-white shadow-sm border border-[rgba(217,180,199,0.4)] hover:shadow-md transition cursor-pointer">
+        <div class="flex items-center gap-4">
+          <svg class="w-10 h-10 sm:w-12 sm:h-12 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"
+              d="M3 16.5V19a2 2 0 002 2h14a2 2 0 002-2v-2.5M7 10l5-5 5 5M12 5v12"></path>
+          </svg>
+          <div>
+            <p class="font-semibold text-base sm:text-lg">Lade deine Fotos hier hoch</p>
+            <p class="text-xs sm:text-sm mt-1">JPEG, PNG, GIF, WebP, HEIC — bis zu 10 Dateien.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <label for="fileInput"
+            class="btn-primary inline-flex items-center gap-2 px-4 py-2 text-xs sm:text-sm font-medium rounded-md"
+            onclick="event.stopPropagation()">
+            Hochladen
+          </label>
+          <input id="fileInput" type="file" accept="image/*,.heic,.heif" multiple class="sr-only" />
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="flex items-center justify-between mb-4 flex-wrap gap-2">
+        <h2 class="text-lg sm:text-xl font-semibold">Galerie</h2>
+        <div class="text-xs sm:text-sm">Zeige <span id="count">0</span> Fotos</div>
+      </div>
+      <div id="gallery" class="masonry"></div>
+    </section>
+  </main>
+
+  <!-- Lightbox -->
+  <div id="lightbox" class="lightbox">
+    <div class="lightbox-content">
+      <div class="lightbox-frame">
+        <img id="lightboxImg" class="lightbox-img" alt="Foto" />
+        <!-- Close (X) inside image -->
+        <button id="lightboxClose" class="lb-btn lb-close" aria-label="Schließen" title="Schließen">
+          <svg class="lb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+        <!-- Download inside image (won’t overlap caption, which is below) -->
+        <a id="lightboxDownload" class="lb-btn lb-download" title="Download" aria-label="Download">
+          <svg class="lb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+        </a>
+      </div>
+      <div id="lightboxCaption" class="lightbox-caption hidden"></div>
+    </div>
+  </div>
+
+  <!-- Upload Progress Overlay -->
+  <div id="uploadOverlay" class="fixed inset-0 z-50 hidden">
+    <!-- dim background -->
+    <div class="absolute inset-0 bg-black/50"></div>
+
+    <!-- card -->
+    <div class="relative mx-auto w-[92vw] max-w-md bg-white rounded-xl shadow-xl p-5 mt-24">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-semibold text-gray-800">Lade Fotos hoch …</h3>
+        <button id="uploadCancel" class="text-gray-400 hover:text-gray-600" title="Abbrechen" aria-label="Abbrechen">
+          <!-- X icon -->
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div id="uploadFilename" class="mt-2 text-xs text-gray-600 truncate">…</div>
+
+      <!-- bar -->
+      <div class="mt-4">
+        <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+          <div id="uploadBar" class="h-3 bg-accent transition-all duration-150" style="width:0%"></div>
+        </div>
+        <div class="mt-1 text-right text-xs text-gray-500">
+          <span id="uploadPercent">0%</span>
+        </div>
+      </div>
+
+      <div id="uploadCounter" class="mt-3 text-xs text-gray-500">0 / 0</div>
+    </div>
+  </div>
+
+  <!-- Toasts -->
+  <div id="toasts" aria-live="polite" aria-atomic="true"></div>
+
+  <footer class="text-center py-6 mt-12 text-sm text-gray-600">
+    Made with
+    <svg xmlns="http://www.w3.org/2000/svg" class="inline w-5 h-5 text-accent align-middle" fill="currentColor"
+      viewBox="0 0 24 24">
+      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 6 
+             4 4 6.5 4c1.74 0 3.41 1.01 4.22 2.61C11.09 5.01 
+             12.76 4 14.5 4 17 4 19 6 19 8.5c0 3.78-3.4 
+             6.86-8.55 11.54L12 21.35z" />
+    </svg>
+    in Vienna.
+  </footer>
+
+
+  <script>
+    const missionDescriptions = {
+      1: "Starte eine Polonaise mit mindestens 5 Gästen und lass dich dabei fotografieren.",
+      2: "Knipse ein Foto mit der Person, die die coolsten Socken trägt.",
+      3: "Mach ein Foto von dir und allen Personen, die mit dir am Tisch sitzen.",
+      4: "Such die Person mit der weitesten Anreise und mach ein Foto mit ihr.",
+      5: "Mach ein Foto von dir und den Eheringen des Brautpaares.",
+      6: "Mach ein Foto, wie du mit anderen Gästen auf das Brautpaar anstößt.",
+      7: "Knipse ein Foto mit den Trauzeugen, wie sie gemeinsam anstoßen.",
+      8: "Mach ein Foto von dir und der Deko.",
+      9: "Fotografiere dich mit dem ältesten und dem jüngsten Gast.",
+      10: "Mach ein Foto mit 4 Personen aus der Familie der Braut.",
+      11: "Mach ein Foto mit 4 Personen aus der Familie des Bräutigams.",
+      12: "Nimm ein Foto von dir und der Person auf, die den Brautstrauß gefangen hat.",
+      13: "Such nach Personen, die die Braut über die Arbeit kennengelernt hat, und mach ein Foto mit ihnen.",
+      14: "Such nach Personen, die der Bräutigam über die Arbeit kennengelernt hat, und mach ein Foto mit ihnen.",
+      15: "Mach ein Foto beim Tanzen mit so vielen Personen wie möglich.",
+      16: "Schieß ein Selfie von dir und deinem Lieblingsgetränk des Tages.",
+      17: "Mach ein Foto mit 5 anderen Personen, aber ohne eure Köpfe.",
+      18: "Fotografiere die Eltern der Braut.",
+      19: "Fotografiere die Eltern des Bräutigams.",
+      20: "Mach ein Selfie mit der Hochzeitstorte.",
+      21: "Fotografiere dich mit einer dir bisher unbekannten Person in einer lustigen Pose.",
+      22: "Finde heraus, welches Paar am längsten verheiratet ist und mache ein Foto von ihnen.",
+      23: "Finde so viele Gäste wie möglich mit der gleichen Schuhfarbe und mach ein Gruppenfoto.",
+      24: "Mache ein Foto vom Gast mit dem längsten Bart.",
+      25: "Fotografiere das Brautpaar beim Eröffnungstanz.",
+      26: "Bringe das Brautpaar zum Lachen und lass dich dabei fotografieren.",
+      27: "Knipse ein Bild mit dir vom Hochzeitsessen und mache eine lustige Grimasse.",
+      28: "Fotografiere den Gast mit den wenigsten Haaren.",
+      29: "Fotografiere eine Gruppe von mindestens 6 Personen, nach der Größe sortiert.",
+      30: "Mach ein Foto von der buntesten Krawatte.",
+      31: "Mach ein Foto von dir und der Location.",
+      32: "Stell dich auf einen Stuhl und mach ein Foto aus der Vogelperspektive.",
+      33: "Bringe den kleinsten und den größten Gast gemeinsam auf ein Foto.",
+      34: "Mach ein Selfie mit Braut und Bräutigam.",
+      35: "Forme gemeinsam mit einer anderen Person ein Herz und lass dich dabei fotografieren.",
+      36: "Mache ein Selfie mit Gästen, die die gleiche Haarfarbe wie du haben.",
+      37: "Mache ein Gruppenfoto mit einem anderen Tisch.",
+      38: "Mache ein Foto von der Braut und der Trauzeugin.",
+      39: "Mache ein Foto von dem Bräutigam und dem Trauzeugen.",
+      40: "Schnapp dir zwei Getränke und stoße mit jemandem an und lass dich fotografieren.",
+      41: "Mach ein Selfie mit einer Pflanze, die im Raum steht.",
+      42: "Fotografiere einen besonderen Moment bei der Feier.",
+      43: "Lass dich und 3 Gäste beim simultanen „Daumen hoch“ fotografieren.",
+      44: "Finde zwei Gäste, die sich noch nie zuvor getroffen haben, und fotografiere sie beim Händeschütteln.",
+      45: "Fotografiere eine Essensschlange am Buffet.",
+      46: "Mache ein Foto mit mindestens 4 Personen, auf dem alle im Bild Grimassen schneiden.",
+      47: "Mach ein Foto von einer Uhr im Raum (dokumentiert den Zeitpunkt der Feier).",
+      48: "Fotografiere jemanden, der gerade Fotos macht.",
+      49: "Fotografiere eine Gruppe, die gerade lacht, ohne dass sie es merkt.",
+      50: "Finde jemanden, den du heute zum ersten Mal siehst, tanzt gemeinsam ein paar Schritte und lasst euch dabei fotografieren."
+    };
+
+
+    const missionParam = Number(new URLSearchParams(location.search).get("mission"));
+    if (Number.isInteger(missionParam) && missionDescriptions[missionParam]) {
+      document.getElementById("missionToggleSection").classList.remove("hidden");
+      document.getElementById("missionDescription").textContent = missionDescriptions[missionParam];
+      document.getElementById("missionToggle").checked = true;
+    }
+
+    const gallery = document.getElementById("gallery");
+    const fileInput = document.getElementById("fileInput");
+    const uploadDrop = document.getElementById("uploadDrop");
+    const missionToggle = document.getElementById("missionToggle");
+
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = document.getElementById("lightboxImg");
+    const lightboxCaption = document.getElementById("lightboxCaption");
+    const lightboxClose = document.getElementById("lightboxClose");
+    const lightboxDownload = document.getElementById("lightboxDownload");
+
+    let currentIndex = -1;
+    let currentList = [];
+
+    // ===== Lightbox =====
+    function openLightbox(idx) {
+      if (idx < 0 || idx >= currentList.length) return;
+      currentIndex = idx;
+      const p = currentList[idx];
+      lightboxImg.src = p.url;
+      lightboxImg.alt = p.name || "Foto";
+
+      if (p.mission_desc) {
+        lightboxCaption.textContent = p.mission_desc;
+        lightboxCaption.classList.remove("hidden");
+      } else {
+        lightboxCaption.classList.add("hidden");
+        lightboxCaption.textContent = "";
+      }
+
+      lightboxDownload.href = p.download_url;
+      lightbox.classList.add("show");
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove("show");
+      lightboxImg.src = "";
+    }
+
+    function nextImage(delta) {
+      if (currentList.length === 0) return;
+      let idx = currentIndex + delta;
+      if (idx < 0) idx = currentList.length - 1;
+      if (idx >= currentList.length) idx = 0;
+      openLightbox(idx);
+    }
+
+    lightboxClose.addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", (e) => {
+      if (e.target === lightbox) closeLightbox(); // click outside content closes
+    });
+    window.addEventListener("keydown", (e) => {
+      if (!lightbox.classList.contains("show")) return;
+      if (e.key === "Escape") closeLightbox();
+      if (e.key === "ArrowRight") nextImage(+1);
+      if (e.key === "ArrowLeft") nextImage(-1);
+    });
+
+    function showToast(message, { type = 'error', duration = 5000 } = {}) {
+      const host = document.getElementById('toasts');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.textContent = message;
+
+      host.appendChild(el);
+      // animate in
+      requestAnimationFrame(() => el.classList.add('show'));
+
+      // hide after duration
+      const hide = () => {
+        el.classList.remove('show');
+        setTimeout(() => el.remove(), 200); // allow transition
+      };
+      const timer = setTimeout(hide, duration);
+
+      // allow manual dismiss on click
+      el.addEventListener('click', () => {
+        clearTimeout(timer);
+        hide();
+      });
+    }
+
+
+    // ===== Upload Progress Overlay (created if missing) =====
+    (function ensureOverlay() {
+      if (document.getElementById('uploadOverlay')) return;
+      const tpl = `
+  <div id="uploadOverlay" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative mx-auto w-[92vw] max-w-md bg-white rounded-xl shadow-xl p-5 mt-24">
+      <div class="flex items-center justify-between">
+        <h3 class="text-base font-semibold text-gray-800">Lade Fotos hoch …</h3>
+        <button id="uploadCancel" class="text-gray-400 hover:text-gray-600" title="Abbrechen" aria-label="Abbrechen">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+               stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+      <div id="uploadFilename" class="mt-2 text-xs text-gray-600 truncate">…</div>
+      <div class="mt-4">
+        <div class="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+          <div id="uploadBar" class="h-3 bg-accent transition-all duration-150" style="width:0%"></div>
+        </div>
+        <div class="mt-1 text-right text-xs text-gray-500">
+          <span id="uploadPercent">0%</span>
+        </div>
+      </div>
+      <div id="uploadCounter" class="mt-3 text-xs text-gray-500">0 / 0</div>
+    </div>
+  </div>`;
+      document.body.insertAdjacentHTML('beforeend', tpl);
+    })();
+
+    const overlayEl = document.getElementById('uploadOverlay');
+    const barEl = document.getElementById('uploadBar');
+    const pctEl = document.getElementById('uploadPercent');
+    const nameEl = document.getElementById('uploadFilename');
+    const counterEl = document.getElementById('uploadCounter');
+    const cancelBtn = document.getElementById('uploadCancel');
+
+    let cancelRequested = false;
+    function showOverlay() {
+      overlayEl.classList.remove('hidden');
+      document.body.classList.add('uploading');
+    }
+    function hideOverlay() {
+      overlayEl.classList.add('hidden');
+      document.body.classList.remove('uploading');
+      barEl.style.width = '0%';
+      pctEl.textContent = '0%';
+      nameEl.textContent = '…';
+      counterEl.textContent = '0 / 0';
+    }
+    cancelBtn.addEventListener('click', () => { cancelRequested = true; });
+
+    // ===== Upload handlers: sequential with progress =====
+    const MAX_FILES = 10;
+
+    uploadDrop.addEventListener("click", e => {
+      if (e.target.tagName !== "INPUT" && e.target.tagName !== "LABEL") fileInput.click();
+    });
+    uploadDrop.addEventListener("dragover", e => { e.preventDefault(); uploadDrop.classList.add("drag-over"); });
+    uploadDrop.addEventListener("dragleave", () => uploadDrop.classList.remove("drag-over"));
+    uploadDrop.addEventListener("drop", e => {
+      e.preventDefault(); uploadDrop.classList.remove("drag-over");
+      const all = [...e.dataTransfer.files];
+      if (all.length > MAX_FILES) {
+        showToast(`Maximal ${MAX_FILES} Dateien pro Upload. Es werden nur die ersten ${MAX_FILES} hochgeladen.`, { type: 'warn' });
+      }
+      const files = all.slice(0, MAX_FILES);
+      if (files.length) uploadQueue(files);
+    });
+    fileInput.addEventListener("change", () => {
+      const all = [...fileInput.files];
+      if (all.length > MAX_FILES) {
+        showToast(`Maximal ${MAX_FILES} Dateien pro Upload. Es werden nur die ersten ${MAX_FILES} hochgeladen.`, { type: 'warn' });
+      }
+      const files = all.slice(0, MAX_FILES);
+      fileInput.value = "";
+      if (files.length) uploadQueue(files);
+    });
+
+    async function uploadQueue(files) {
+      // filter to images by type or extension (allows HEIC/HEIF too)
+      const accepted = files.filter(f =>
+        /image|heic|heif/i.test(f.type) || /\.(heic|heif|jpe?g|png|gif|webp)$/i.test(f.name)
+      );
+      if (!accepted.length) return;
+
+      cancelRequested = false;
+      showOverlay();
+
+      const total = accepted.length;
+      for (let i = 0; i < accepted.length; i++) {
+        if (cancelRequested) break;
+        const file = accepted[i];
+
+        nameEl.textContent = file.name;
+        counterEl.textContent = `${i + 1} / ${total}`;
+
+        try {
+          await uploadSingleWithProgress(file, (loaded, totalBytes) => {
+            const fileFrac = totalBytes > 0 ? (loaded / totalBytes) : 0;
+            const overall = ((i + fileFrac) / total) * 100;
+            barEl.style.width = `${overall.toFixed(1)}%`;
+            pctEl.textContent = `${overall.toFixed(0)}%`;
+          });
+        } catch (e) {
+          console.error('Upload failed:', e);
+          showToast(typeof e === 'string' ? e : 'Upload fehlgeschlagen', { type: 'error' });
+        }
+      }
+
+      hideOverlay();
+      if (!cancelRequested) loadPhotos();
+    }
+
+    function uploadSingleWithProgress(file, onProgress) {
+      return new Promise((resolve, reject) => {
+        const fd = new FormData();
+        fd.append("file", file);
+        if (missionDescriptions[missionParam] && missionToggle.checked) {
+          fd.append("mission_number", missionParam);
+          fd.append("mission_desc", missionDescriptions[missionParam]);
+        }
+
+        const xhr = new XMLHttpRequest();
+        xhr.open("POST", "/upload", true);
+
+        xhr.upload.onprogress = (evt) => {
+          if (evt.lengthComputable && typeof onProgress === 'function') {
+            onProgress(evt.loaded, evt.total);
+          }
+        };
+
+        xhr.onload = () => {
+          const status = xhr.status;
+          if (status >= 200 && status < 300) {
+            try {
+              const resp = JSON.parse(xhr.responseText);
+              if (resp && resp.success) {
+                resolve(resp);
+              } else {
+                const msg = resp?.error || 'Serverfehler';
+                showToast(msg, { type: 'error', duration: 5000 });
+                reject(msg);
+              }
+            } catch {
+              const msg = 'Ungültige Serverantwort';
+              showToast(msg, { type: 'error', duration: 5000 });
+              reject(msg);
+            }
+          } else {
+            // Try to read JSON error message from server (e.g., 429 daily limit)
+            let msg = `HTTP ${status}`;
+            try {
+              const resp = JSON.parse(xhr.responseText);
+              if (resp?.error) msg = resp.error;
+            } catch { }
+            showToast(msg, { type: 'error', duration: 5000 });
+            reject(msg);
+          }
+        };
+
+        xhr.onerror = () => { showToast('Netzwerkfehler', { type: 'error', duration: 5000 }); reject('Network error'); };
+        xhr.onabort = () => { showToast('Abgebrochen', { type: 'warn', duration: 5000 }); reject('Aborted'); };
+
+        // allow cancel button to abort
+        const cancelTick = setInterval(() => { if (cancelRequested) xhr.abort(); }, 100);
+        xhr.onloadend = () => clearInterval(cancelTick);
+
+        xhr.send(fd);
+      });
+    }
+
+
+    // ===== Gallery render =====
+    function loadPhotos() {
+      fetch("/photos")
+        .then(r => r.json())
+        .then(data => {
+          currentList = data;
+          gallery.innerHTML = "";
+          data.forEach((photo, idx) => {
+            const fig = document.createElement("figure");
+            fig.className = "masonry-item relative overflow-hidden rounded-lg shadow cursor-zoom-in";
+
+            const img = document.createElement("img");
+            img.src = photo.url;
+            img.alt = photo.name;
+            img.className = "block w-full h-auto";
+            img.addEventListener("click", () => openLightbox(idx));
+            fig.appendChild(img);
+
+            if (photo.mission_desc) {
+              const cap = document.createElement("div");
+              cap.className = "caption-overlay";
+              cap.textContent = photo.mission_desc;
+              fig.appendChild(cap);
+            }
+
+            gallery.appendChild(fig);
+          });
+
+          document.getElementById("count").textContent = data.length;
+        });
+    }
+
+    // Initial load
+    loadPhotos();
+  </script>
+</body>
+
+</html>
